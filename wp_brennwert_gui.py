@@ -28,6 +28,7 @@ Funktionen:
 - CO2-Kosten
 - Förderbetrag (WP und Kessel getrennt)
 - Verteil-/Speicherverluste des Gebäudes
+- Zurücksetzen aller Parameter auf geprüfte Standardwerte
 - Export der Diagramme als PNG (inkl. korrekt zugeschnittener Einzelgrafiken)
 - Export der aktuellen Parameter als TXT
 
@@ -492,7 +493,11 @@ class App:
         self.update_plots()
 
     def create_variables(self):
-        defaults = {
+        # Diese Werte dienen als fachlich geprüfte Standardwerte (Stand
+        # 2026) für einen durchschnittlichen deutschen Einfamilienhaus-
+        # Vergleich WP vs. Brennwertkessel und werden auch vom
+        # "Auf Standard zurücksetzen"-Button wiederhergestellt.
+        self.defaults = {
             # Gebäude
             "design_load": 10.0,
             "design_temp": -10.0,
@@ -502,11 +507,11 @@ class App:
             "distribution_loss": 5.0,
 
             # WP Wirtschaft
-            "wp_invest": 25000.0,
+            "wp_invest": 27000.0,
             "wp_subsidy": 0.0,
             "wp_life": 20.0,
-            "wp_maintenance": 350.0,
-            "electricity": 0.30,
+            "wp_maintenance": 300.0,
+            "electricity": 0.28,
             "electricity_growth": 2.0,
             "discount": 4.0,
 
@@ -543,21 +548,27 @@ class App:
             "boiler_invest": 9000.0,
             "boiler_subsidy": 0.0,
             "boiler_life": 20.0,
-            "boiler_maintenance": 300.0,
-            "gas": 0.11,
+            "boiler_maintenance": 250.0,
+            "gas": 0.12,
             "gas_growth": 2.0,
             "boiler_eff": 98.0,
             "boiler_temp_penalty": 0.0005,
             "boiler_aux": 0.02,
             "gas_base": 180.0,
             "chimney": 100.0,
-            "co2": 55.0,
+            "co2": 60.0,
             "gas_co2": 0.202,
             "boiler_discount": 4.0,
         }
 
-        for k, v in defaults.items():
+        for k, v in self.defaults.items():
             self.vars[k] = tk.DoubleVar(value=v)
+
+    def reset_to_defaults(self):
+        for k, v in self.defaults.items():
+            self.vars[k].set(v)
+        self.update_plots()
+        self.status.config(text="Alle Parameter auf Standardwerte zurückgesetzt.")
 
     def add_entry(self, parent, row, label, key, unit=""):
         ttk.Label(parent, text=label).grid(
@@ -704,6 +715,13 @@ class App:
         ttk.Button(
             bf, text="Parameter exportieren",
             command=self.export_parameters
+        ).pack(fill="x", pady=3)
+
+        ttk.Separator(bf, orient="horizontal").pack(fill="x", pady=4)
+
+        ttk.Button(
+            bf, text="⟲ Attribute auf Standard setzen",
+            command=self.reset_to_defaults
         ).pack(fill="x", pady=3)
 
         # --------------------------------------------------------------------
